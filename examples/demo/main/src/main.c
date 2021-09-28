@@ -1,11 +1,21 @@
 #include <stdio.h>
 #include "common.h"
-#include "test_kalman.h"
+#include "tests.h"
+#include "thr_pjsip.h"
 
+// pj_status_t app_init(void)
+// {
+//     pj_status_t status;
+
+//     status = pjsua_create();
+//     if (PJ_SUCCESS != status)
+//         return status;
+// }
 
 int init(void)
 {
-    test_kalman_init();
+    // app_init();
+    thr_pjsip_init();
     return 0;
 }
 
@@ -17,10 +27,6 @@ int loop(void)
 
 int main(void)
 {
-    _INFO("info\n");
-    _ERR("err\n");
-    _WARNING("warning\n");
-
     int res = 0;
 
     res = init();

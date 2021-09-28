@@ -1,0 +1,9 @@
+#define PJMEDIA_AUDIO_DEV_HAS_ALSA      1
+#undef PJMEDIA_AUDIO_DEV_HAS_PORTAUDIO
+#define PJMEDIA_AUDIO_DEV_HAS_PORTAUDIO     0
+#include <pj/config_site_sample.h>
+
+#define PJMEDIA_RESAMPLE_NONE   1
+#define PJMEDIA_HAS_SPEEX_AEC   0
+#define PJMEDIA_HAS_VIDEO   0
+#define PJMEDIA_CONF_USE_SWITCH_BOARD 1

@@ -1,0 +1,13 @@
+menuconfig THIRD_PARTY_ENABLE
+    bool "Enable third party"
+    default y
+
+    menuconfig PJSIP_ENABLE
+        bool "Enable pjsip"
+        default y
+        depends on THIRD_PARTY_ENABLE
+
+        config PJSIP_USER_DYNAMIC_LIB
+            bool "Compile pjsip with shared lib (default use static lib)"
+            default y
+            depends on PJSIP_ENABLE
