@@ -37,25 +37,27 @@ static pj_status_t app_init(void)
         pjsua_perror(THIS_FILE, "Error initializing pjsua", status);
         return status;
     }
+
+    return status;
 }
 
-static pj_status_t app_cfg_init(void)
-{
-    pj_status_t res = PJ_SUCCESS;
+// static pj_status_t app_cfg_init(void)
+// {
+//     pj_status_t res = PJ_SUCCESS;
 
-    pjsua_transport_config transport_cfg;
-    pjsua_transport_id transport_id = -1;
-    pjsua_transport_config_default(&transport_cfg);
+//     pjsua_transport_config transport_cfg;
+//     pjsua_transport_id transport_id = -1;
+//     pjsua_transport_config_default(&transport_cfg);
 
-    res = pjsua_transport_create(PJSIP_TRANSPORT_UDP, &transport_cfg, &transport_id);
-    if (res != PJ_SUCCESS)
-    {
-        pjsua_perror(THIS_FILE, "Error create transport", res);
-        return res;
-    }
+//     res = pjsua_transport_create(PJSIP_TRANSPORT_UDP, &transport_cfg, &transport_id);
+//     if (res != PJ_SUCCESS)
+//     {
+//         pjsua_perror(THIS_FILE, "Error create transport", res);
+//         return res;
+//     }
 
 
-}
+// }
 
 static pj_status_t app_deinit(void)
 {
@@ -77,6 +79,7 @@ static pj_status_t app_run(void)
     char choice[10];
     printf("Select menu: ");
     fgets(choice, sizeof(choice), stdin);
+    return PJ_SUCCESS;
 }
 
 pj_status_t thr_pjsip_init(void)
@@ -97,7 +100,12 @@ pj_status_t thr_pjsip_init(void)
     return res;
 }
 
+pj_status_t thr_pjsip_deinit(void)
+{
+    return app_deinit();
+}
+
 pj_status_t thr_pjsip_loop(void)
 {
-    app_run();
+    return app_run();
 }
