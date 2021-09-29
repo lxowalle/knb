@@ -8,5 +8,9 @@
 #include "pjmedia.h"
 #include "pjmedia-codec.h"
 
+#include "pjsua_app_common.h"
+#include "pjsua_app.h"
+#include "pjsua_app_config.h"
+
 pj_status_t thr_pjsip_init(void);
 pj_status_t thr_pjsip_loop(void);
