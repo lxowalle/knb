@@ -35,7 +35,7 @@ static void ring_start(pjsua_call_id call_id);
 static void ring_stop(pjsua_call_id call_id);
 static pj_status_t app_init(void);
 static pj_status_t app_destroy(void);
-
+static thr_pjsip_t thr_pjsip;
 static pjsua_app_cfg_t app_cfg;
 pj_str_t		    uri_arg;
 pj_bool_t		    app_running	= PJ_FALSE;
@@ -124,6 +124,10 @@ static void call_timeout_callback(pj_timer_heap_t *timer_heap,
     pj_str_t hvalue = pj_str("399 pjsua \"Call duration exceeded\"");
 
     PJ_UNUSED_ARG(timer_heap);
+
+	if (thr_pjsip.cb_on_call_timeout 
+		&& PJ_SUCCESS != thr_pjsip.cb_on_call_timeout(timer_heap, entry))
+		return;
 
     if (call_id == PJSUA_INVALID_ID) {
 	PJ_LOG(1,(THIS_FILE, "Invalid call ID in timer callback"));
@@ -338,6 +342,9 @@ static void on_incoming_call(pjsua_acc_id acc_id, pjsua_call_id call_id,
 		  (app_config.use_cli?"g":"h")));
     }
 
+	if (thr_pjsip.cb_on_call_incoming 
+		&& PJ_SUCCESS != thr_pjsip.cb_on_call_incoming(acc_id, call_id, rdata))
+		return;
 }
 
 /* General processing for media state. "mi" is the media index */
@@ -1945,7 +1952,7 @@ void on_stopped(pj_bool_t restart, int argc, char** argv)
 
 void *on_config_init(pjsua_app_config *cfg)
 {
-
+	return NULL;
 }
 
 static pj_status_t app_run(void)
@@ -2233,13 +2240,12 @@ pj_status_t thr_pjsip_make_call(char *url)
 	call_opt.aud_cnt = app_config.aud_cnt;
 	call_opt.vid_cnt = app_config.vid.vid_cnt;
 	
-	pjsua_call_make_call(current_acc, &call_dst, &call_opt, NULL, &msg_data_, &current_call);
+	return pjsua_call_make_call(current_acc, &call_dst, &call_opt, NULL, &msg_data_, &current_call);
 }
 
 pj_status_t thr_pjsip_answer_call(int st_code)
 {
     pjsua_call_info call_info;
-    char buf[128];
     pjsua_msg_data msg_data_;
 
     if (current_call != -1) {
@@ -2257,10 +2263,6 @@ pj_status_t thr_pjsip_answer_call(int st_code)
 	return PJ_FALSE;
 
     } else {
-	char contact[120];
-	pj_str_t hname = { "Contact", 7 };
-	pj_str_t hvalue;
-	pjsip_generic_string_hdr hcontact;
 
 	if (st_code < 100)
 	    return PJ_FALSE;
@@ -2282,6 +2284,26 @@ pj_status_t thr_pjsip_answer_call(int st_code)
     }
 
 	return PJ_SUCCESS;
+}
+
+pj_status_t thr_pjsip_reg_callback(thr_pjsip_callback_e cb_state, void *cb)
+{
+	pj_status_t status = PJ_SUCCESS;
+
+	switch (cb_state)
+	{
+	case THR_PJSIP_CALL_TIMEOUT_CB:
+		thr_pjsip.cb_on_call_timeout = cb;
+		break;
+	case THR_PJSIP_CALL_INCOMING_CB:
+		thr_pjsip.cb_on_call_incoming = cb;
+		break;
+	default:
+		status = PJ_FALSE;
+		break;	
+	}
+
+	return status;
 }
 
 pj_status_t thr_pjsip_deinit(void)

@@ -5,6 +5,14 @@
 
 #define THIS_FILE   __FILE__
 
+pj_status_t call_incoming_cb(pjsua_acc_id acc_id, pjsua_call_id call_id,pjsip_rx_data *rdata)
+{
+#if 0
+    // 接听电话
+    thr_pjsip_answer_call(200);
+#endif
+}
+
 int init(void)
 {
     // app_init();
@@ -32,16 +40,12 @@ int init(void)
     if (status != PJ_SUCCESS)
         pjsua_perror(THIS_FILE, "Error make call", status);
 #endif
-
-    
-
+    thr_pjsip_reg_callback(THR_PJSIP_CALL_INCOMING_CB, call_incoming_cb);
     return 0;
 }
 
 int loop(void)
 {
-    // 接收电话
-    // thr_pjsip_answer_call(200);
     return 0;
 }
 
