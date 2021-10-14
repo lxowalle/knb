@@ -2,7 +2,12 @@
 
 #define THIS_FILE __FILE__
 
-#define THIS_FILE	"pjsua_app.c"
+#define _DBG_LINE(a)                                            \
+do{                                                         \
+    printf("[DBG LINE]===================%d\n", __LINE__);  \
+    if (a != 0)                                             \
+        exit(a);                                            \
+}while(0)
 
 //#define STEREO_DEMO
 //#define TRANSPORT_ADAPTER_SAMPLE
