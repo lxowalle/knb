@@ -250,7 +250,7 @@ static void on_call_state(pjsua_call_id call_id, pjsip_event *e)
 
 	if (current_call==PJSUA_INVALID_ID)
 	    current_call = call_id;
-
+		
     }
 }
 
@@ -267,70 +267,6 @@ static void on_stream_destroyed(pjsua_call_id call_id,
 		  "Call %d stream %d destroyed, dumping media stats..", 
 		  call_id, stream_idx));
 	log_call_dump(call_id);
-    }
-}
-
-static void ui_answer_call()
-{
-    pjsua_call_info call_info;
-    char buf[128];
-    pjsua_msg_data msg_data_;
-
-    if (current_call != -1) {
-	pjsua_call_get_info(current_call, &call_info);
-    } else {
-	/* Make compiler happy */
-	call_info.role = PJSIP_ROLE_UAC;
-	call_info.state = PJSIP_INV_STATE_DISCONNECTED;
-    }
-
-    if (current_call == -1 ||
-	call_info.role != PJSIP_ROLE_UAS ||
-	call_info.state >= PJSIP_INV_STATE_CONNECTING)
-    {
-	puts("No pending incoming call");
-	fflush(stdout);
-	return;
-
-    } else {
-	int st_code;
-	char contact[120];
-	pj_str_t hname = { "Contact", 7 };
-	pj_str_t hvalue;
-	pjsip_generic_string_hdr hcontact;
-
-	// if (!simple_input("Answer with code (100-699)", buf, sizeof(buf)))
-	//     return;
-
-	// st_code = my_atoi(buf);
-	// if (st_code < 100)
-	//     return;
-	st_code = 200;
-
-	pjsua_msg_data_init(&msg_data_);
-
-	if (st_code/100 == 3) {
-	    // if (!simple_input("Enter URL to be put in Contact",
-		// contact, sizeof(contact)))
-		// return;
-	    hvalue = pj_str(contact);
-	    pjsip_generic_string_hdr_init2(&hcontact, &hname, &hvalue);
-
-	    pj_list_push_back(&msg_data_.hdr_list, &hcontact);
-	}
-
-	/*
-	* Must check again!
-	* Call may have been disconnected while we're waiting for
-	* keyboard input.
-	*/
-	if (current_call == -1) {
-	    puts("Call has been disconnected");
-	    fflush(stdout);
-	    return;
-	}
-
-	pjsua_call_answer2(current_call, &call_opt, st_code, NULL, &msg_data_);
     }
 }
 
@@ -402,7 +338,6 @@ static void on_incoming_call(pjsua_acc_id acc_id, pjsua_call_id call_id,
 		  (app_config.use_cli?"g":"h")));
     }
 
-	ui_answer_call();
 }
 
 /* General processing for media state. "mi" is the media index */
@@ -2160,36 +2095,6 @@ static pj_status_t app_destroy(void)
     return status;
 }
 
-static void ui_add_account(pjsua_transport_config *rtp_cfg)
-{
-    pjsua_acc_config acc_cfg;
-    pj_status_t status;
-
-    char id[80] = "sip:100@192.168.0.15";
-    char registrar[80] = "sip:192.168.0.15";
-    char realm[80] = "*";
-    char uname[80] = "100";
-    char passwd[30] = "100"; 
-
-    pjsua_acc_config_default(&acc_cfg);
-    acc_cfg.id = pj_str(id);
-    acc_cfg.reg_uri = pj_str(registrar);
-    acc_cfg.cred_count = 1;
-    acc_cfg.cred_info[0].scheme = pj_str("Digest");
-    acc_cfg.cred_info[0].realm = pj_str(realm);
-    acc_cfg.cred_info[0].username = pj_str(uname);
-    acc_cfg.cred_info[0].data_type = 0;
-    acc_cfg.cred_info[0].data = pj_str(passwd);
-
-    acc_cfg.rtp_cfg = *rtp_cfg;
-    app_config_init_video(&acc_cfg);
-
-    status = pjsua_acc_add(&acc_cfg, PJ_TRUE, NULL);
-    if (status != PJ_SUCCESS) {
-	pjsua_perror(THIS_FILE, "Error adding new account", status);
-    }
-}
-
 static pj_status_t _pjsua_app_init(const pjsua_app_cfg_t *cfg)
 {
     pj_status_t status;
@@ -2248,8 +2153,135 @@ pj_status_t thr_pjsip_init(void)
     pjsua_call_make_call(current_acc, &uri_arg, &call_opt, NULL, 
 			     NULL, NULL);
 
-    ui_add_account(&app_config.rtp_cfg);
     return res;
+}
+
+pj_status_t thr_pjsip_add_account(thr_pjsip_acc_cfg_t * cfg)
+{
+    pjsua_acc_config acc_cfg;
+    pj_status_t status;
+	pjsua_transport_config *rtp_cfg = &app_config.rtp_cfg;
+
+    pjsua_acc_config_default(&acc_cfg);
+    acc_cfg.id = pj_str(cfg->id);
+    acc_cfg.reg_uri = pj_str(cfg->reg_uri);
+    acc_cfg.cred_count = 1;
+    acc_cfg.cred_info[0].scheme = pj_str("Digest");
+    acc_cfg.cred_info[0].realm = pj_str(cfg->cred_info.realm);
+    acc_cfg.cred_info[0].username = pj_str(cfg->cred_info.uname);
+    acc_cfg.cred_info[0].data_type = 0;
+    acc_cfg.cred_info[0].data = pj_str(cfg->cred_info.passwd);
+
+    acc_cfg.rtp_cfg = *rtp_cfg;
+    app_config_init_video(&acc_cfg);
+
+    status = pjsua_acc_add(&acc_cfg, PJ_TRUE, NULL);
+    if (status != PJ_SUCCESS) {
+	pjsua_perror(THIS_FILE, "Error adding new account", status);
+    }
+
+	return status;
+}
+
+void thr_pjsip_print_buddy_list(void)
+{
+    pjsua_buddy_id ids[64];
+    int i;
+    unsigned count = PJ_ARRAY_SIZE(ids);
+
+    puts("Buddy list:");
+
+    pjsua_enum_buddies(ids, &count);
+
+    if (count == 0) {
+	puts(" -none-");
+    } else {
+	for (i=0; i<(int)count; ++i) {
+	    pjsua_buddy_info info;
+
+	    if (pjsua_buddy_get_info(ids[i], &info) != PJ_SUCCESS)
+		continue;
+
+	    printf(" [%2d] <%.*s>  %.*s\n",
+		    ids[i]+1,
+		    (int)info.status_text.slen,
+		    info.status_text.ptr,
+		    (int)info.uri.slen,
+		    info.uri.ptr);
+	}
+    }
+    puts("");
+}
+
+pj_status_t thr_pjsip_make_call(char *url)
+{
+	pj_status_t status = PJ_SUCCESS;
+	pj_str_t call_dst;
+	pjsua_msg_data msg_data_;
+
+	status = pjsua_verify_url(url);
+	if (status != PJ_SUCCESS)
+	{
+		pjsua_perror(THIS_FILE, "Invalid URL", status);
+		return status;
+	}
+
+	call_dst = pj_str(url);
+
+	pjsua_msg_data_init(&msg_data_);
+	pjsua_call_setting_default(&call_opt);
+	call_opt.aud_cnt = app_config.aud_cnt;
+	call_opt.vid_cnt = app_config.vid.vid_cnt;
+	
+	pjsua_call_make_call(current_acc, &call_dst, &call_opt, NULL, &msg_data_, &current_call);
+}
+
+pj_status_t thr_pjsip_answer_call(int st_code)
+{
+    pjsua_call_info call_info;
+    char buf[128];
+    pjsua_msg_data msg_data_;
+
+    if (current_call != -1) {
+	pjsua_call_get_info(current_call, &call_info);
+    } else {
+	/* Make compiler happy */
+	call_info.role = PJSIP_ROLE_UAC;
+	call_info.state = PJSIP_INV_STATE_DISCONNECTED;
+    }
+
+    if (current_call == -1 ||
+	call_info.role != PJSIP_ROLE_UAS ||
+	call_info.state >= PJSIP_INV_STATE_CONNECTING)
+    {
+	return PJ_FALSE;
+
+    } else {
+	char contact[120];
+	pj_str_t hname = { "Contact", 7 };
+	pj_str_t hvalue;
+	pjsip_generic_string_hdr hcontact;
+
+	if (st_code < 100)
+	    return PJ_FALSE;
+
+	pjsua_msg_data_init(&msg_data_);
+
+	/*
+	* Must check again!
+	* Call may have been disconnected while we're waiting for
+	* keyboard input.
+	*/
+	if (current_call == -1) {
+	    puts("Call has been disconnected");
+	    fflush(stdout);
+	    return PJ_FALSE;
+	}
+
+	pjsua_call_answer2(current_call, &call_opt, st_code, NULL, &msg_data_);
+    }
+
+	return PJ_SUCCESS;
 }
 
 pj_status_t thr_pjsip_deinit(void)
