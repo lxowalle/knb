@@ -26,25 +26,25 @@
  * platform, you should only include this file once in one of
  * your source file.
  */
-// const char *pjsua_app_def_argv[] = { "pjsua",
-// 				     "--use-cli",
-// 				     "--no-cli-console",
-// 				     "--quality=4",
-// #if defined(PJMEDIA_HAS_VIDEO) && PJMEDIA_HAS_VIDEO
-// 			             "--video",
-// #endif
-// #if defined(PJ_SYMBIAN) && PJ_SYMBIAN
-// 				     /* Can't reuse address on E52 */
-// 				     "--cli-telnet-port=0",
-// #else
-// 				     "--cli-telnet-port=2323",
-// #endif
-// #if defined(PJ_CONFIG_BB10) && PJ_CONFIG_BB10
-// 			             "--add-buddy=sip:169.254.0.2",
-// #endif
-// 			             NULL };
+const char *pjsua_app_def_argv[] = { "pjsua",
+				     "--use-cli",
+				     "--no-cli-console",
+				     "--quality=4",
+#if defined(PJMEDIA_HAS_VIDEO) && PJMEDIA_HAS_VIDEO
+			             "--video",
+#endif
+#if defined(PJ_SYMBIAN) && PJ_SYMBIAN
+				     /* Can't reuse address on E52 */
+				     "--cli-telnet-port=0",
+#else
+				     "--cli-telnet-port=2323",
+#endif
+#if defined(PJ_CONFIG_BB10) && PJ_CONFIG_BB10
+			             "--add-buddy=sip:169.254.0.2",
+#endif
+			             NULL };
 
-// #define pjsua_app_def_argc (PJ_ARRAY_SIZE(pjsua_app_def_argv)-1)
+#define pjsua_app_def_argc (PJ_ARRAY_SIZE(pjsua_app_def_argv)-1)
 
 
 #endif	/* __PJSUA_APP_CONFIG_H__ */

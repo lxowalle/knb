@@ -1,10 +1,6 @@
 ################# Add include #################
 # pjsip
-list(APPEND ADD_INCLUDE "pjsip/pjproject/pjlib/include"
-                        "pjsip/pjproject/pjlib-util/include"
-                        "pjsip/pjproject/pjmedia/include"
-                        "pjsip/pjproject/pjnath/include"
-                        "pjsip/pjproject/pjsip/include"
+list(APPEND ADD_INCLUDE "pjsip/pjproject/include"
                         "pjsip/inc")
 
 list(APPEND ADD_PRIVATE_INCLUDE "")
@@ -28,26 +24,27 @@ if(NOT CONFIG_PJSIP_USER_DYNAMIC_LIB)
 endif()
 ############ Add dynamic libs ##################
 if(CONFIG_PJSIP_USER_DYNAMIC_LIB)
-list(APPEND ADD_DYNAMIC_LIB "pjsip/pjproject/pjlib/lib/libpj.so"
-                            "pjsip/pjproject/pjlib-util/lib/libpjlib-util.so"
-                            "pjsip/pjproject/pjmedia/lib/libpjmedia-audiodev.so"
-                            "pjsip/pjproject/pjmedia/lib/libpjmedia-codec.so"
-                            "pjsip/pjproject/pjmedia/lib/libpjmedia.so"
-                            "pjsip/pjproject/pjmedia/lib/libpjmedia-videodev.so"
-                            "pjsip/pjproject/pjmedia/lib/libpjsdp.so"
-                            "pjsip/pjproject/pjnath/lib/libpjnath.so"
-                            "pjsip/pjproject/pjsip/lib/libpjsip-simple.so"
-                            "pjsip/pjproject/pjsip/lib/libpjsip-ua.so"
-                            "pjsip/pjproject/pjsip/lib/libpjsip.so"
-                            "pjsip/pjproject/pjsip/lib/libpjsua.so"
-                            "pjsip/pjproject/pjsip/lib/libpjsua2.so"
-                            "pjsip/pjproject/third_party/lib/libg7221codec.so"
-                            "pjsip/pjproject/third_party/lib/libgsmcodec.so"
-                            "pjsip/pjproject/third_party/lib/libilbccodec.so"
-                            "pjsip/pjproject/third_party/lib/libresample.so"
-                            "pjsip/pjproject/third_party/lib/libspeex.so"
-                            "pjsip/pjproject/third_party/lib/libsrtp.so"
-                            "pjsip/pjproject/third_party/lib/libyuv.so")
+list(APPEND ADD_DYNAMIC_LIB "pjsip/pjproject/lib/libpj.so.2"
+                            "pjsip/pjproject/lib/libpjlib-util.so.2"
+                            "pjsip/pjproject/lib/libpjmedia-audiodev.so.2"
+                            "pjsip/pjproject/lib/libpjmedia-codec.so.2"
+                            "pjsip/pjproject/lib/libpjmedia.so.2"
+                            "pjsip/pjproject/lib/libpjmedia-videodev.so.2"
+                            # "pjsip/pjproject/lib/libpjsdp.so"
+                            "pjsip/pjproject/lib/libpjnath.so.2"
+                            "pjsip/pjproject/lib/libpjsip-simple.so.2"
+                            "pjsip/pjproject/lib/libpjsip-ua.so.2"
+                            "pjsip/pjproject/lib/libpjsip.so.2"
+                            "pjsip/pjproject/lib/libpjsua.so.2"
+                            # "pjsip/pjproject/lib/libpjsua2.so"
+                            "pjsip/pjproject/lib/libg7221codec.so.2"
+                            "pjsip/pjproject/lib/libgsmcodec.so.2"
+                            "pjsip/pjproject/lib/libilbccodec.so.2"
+                            "pjsip/pjproject/lib/libresample.so.2"
+                            "pjsip/pjproject/lib/libspeex.so.2"
+                            "pjsip/pjproject/lib/libsrtp.so.2"
+                            # "pjsip/pjproject/lib/libyuv.so"
+                            )
 endif()
 ###############################################
 
