@@ -8,10 +8,6 @@
 #include "pjmedia.h"
 #include "pjmedia-codec.h"
 
-#include "pjsua_app_common.h"
-#include "pjsua_app.h"
-#include "pjsua_app_config.h"
-
 typedef struct
 {
     char	    id[50];         // 账户完整的sip url，例如"sip:account@serviceprovider"
@@ -110,17 +106,17 @@ void mf_pjsip_make_multiple_calls(char *dst_url);
 /**
  * @brief 挂断电话(TODO)
 */
-int mf_pjsip_hangup_call(pjsua_call_id call_id);
+int mf_pjsip_hangup_call(int all);
 
 /**
  * @brief 挂起电话(TODO)
 */
-int mf_pjsip_hold_call(pjsua_call_id call_id);
+int mf_pjsip_hold_call(void);
 
 /**
  * @brief 释放挂起的电话(TODO)
 */
-void mf_pjsip_reinvite_call(void);
+int mf_pjsip_reinvite_call(void);
 
 /**
  * @brief 发起更新请求(TODO)
@@ -215,7 +211,7 @@ void mf_pjsip_disconnect_port(void);
 /**
  * @brief 调节声音音量(TODO)
 */
-void mf_pjsip_adjust_audio_volume(void);
+int mf_pjsip_adjust_audio_volume(float mic_vol, float spk_vol);
 
 /**
  * @brief 设置编码器优先级(TODO)
@@ -230,7 +226,7 @@ int mf_pjsip_add_new_account(mf_pjsip_acc_cfg_t *cfg);
 /**
  * @brief 删除账户(TODO)
 */
-void mf_pjsip_delete_account(void);
+int mf_pjsip_delete_account(pjsua_acc_id acc_id);
 
 /**
  * @brief 修改账户(TODO)
@@ -245,7 +241,7 @@ void mf_pjsip_re_register_account(void);
 /**
  * @brief 取消注册账户(TODO)
 */
-void mf_pjsip_unregister(void);
+int mf_pjsip_unregister(void);
 
 /**
  * @brief 下一个循环？(TODO)

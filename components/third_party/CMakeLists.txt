@@ -3,7 +3,7 @@
 list(APPEND ADD_INCLUDE "pjsip/pjproject/include"
                         "pjsip/inc")
 
-list(APPEND ADD_PRIVATE_INCLUDE "")
+list(APPEND ADD_PRIVATE_INCLUDE "pjsip/inc_private")
 ###############################################
 
 ############## Add source files ###############
