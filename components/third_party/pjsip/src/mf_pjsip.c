@@ -373,6 +373,8 @@ int mf_pjsip_add_new_account(mf_pjsip_acc_cfg_t * cfg)
     pjsua_acc_config_default(&acc_cfg);
     acc_cfg.id = pj_str(cfg->id);
     acc_cfg.reg_uri = pj_str(cfg->reg_uri);
+	acc_cfg.vid_in_auto_show = PJ_TRUE;
+	acc_cfg.vid_out_auto_transmit = PJ_TRUE;
     acc_cfg.cred_count = 1;
     acc_cfg.cred_info[0].scheme = pj_str("Digest");
     acc_cfg.cred_info[0].realm = pj_str(cfg->cred_info.realm);
@@ -484,7 +486,48 @@ void mf_pjsip_save_config(void);
 /**
  * @brief 开启video功能(TODO)
 */
-void mf_pjsip_enable_video(void);
+int mf_pjsip_enable_video(int enable)
+{
+	app_config.vid.vid_cnt = enable ? 1 : 0;
+
+#if 0
+	pj_status_t status = PJ_SUCCESS;
+	int vid_idx;
+	pjsua_vid_win_id wid;
+
+	vid_idx = pjsua_call_get_vid_stream_idx(current_call);
+	if (vid_idx >= 0) {
+		pjsua_call_info ci;
+
+		pjsua_call_get_info(current_call, &ci);
+		wid = ci.media[vid_idx].stream.vid.win_in;
+	}
+
+	/* 获取vid窗口信息 */
+	pjsua_vid_win_info wi;
+	status = pjsua_vid_win_get_info(wid, &wi);
+	if (status != PJ_SUCCESS)
+	{
+		return -1;
+	}
+
+	/* 显示/隐藏id窗口 */
+	status = pjsua_vid_win_set_show(wid, 1);
+	if (status != PJ_SUCCESS)
+	{
+		return -1;
+	}
+
+	/* 配置vid流 */
+	status = pjsua_call_set_vid_strm(current_call,
+	                                PJSUA_CALL_VID_STRM_ADD, NULL);
+	if (status != PJ_SUCCESS)
+	{
+		return -1;
+	}
+#endif
+	return 0;
+}
 
 /**
  * @brief 显示当前video的会话配置(TODO)
@@ -494,12 +537,54 @@ void mf_pjsip_vid_show_cfg(void);
 /**
  * @brief 启动自动接收video数据(TODO)
 */
-void mf_pjsip_vid_set_autorx(void);
+int mf_pjsip_vid_set_autorx(int on)
+{
+	pj_status_t status = PJ_SUCCESS;
+	pjsua_acc_config acc_cfg;
+	pj_pool_t *tmp_pool = pjsua_pool_create("tmp-pjsua", 1000, 1000);
+
+	pjsua_acc_get_config(current_acc, tmp_pool, &acc_cfg);
+	
+	on = on ? 1 : 0;
+	if (acc_cfg.vid_in_auto_show != on)
+	{
+		acc_cfg.vid_in_auto_show = on;
+		status = pjsua_acc_modify(current_acc, &acc_cfg);
+	}
+
+	pj_pool_release(tmp_pool);
+
+	if (status == PJ_SUCCESS)
+		return 0;
+	else
+		return -1;
+}
 
 /**
  * @brief 启动自动发送video数据(TODO)
 */
-void mf_pjsip_vid_set_autotx(void);
+int mf_pjsip_vid_set_autotx(int on)
+{
+	pj_status_t status = PJ_SUCCESS;
+	pjsua_acc_config acc_cfg;
+	pj_pool_t *tmp_pool = pjsua_pool_create("tmp-pjsua", 1000, 1000);
+
+	pjsua_acc_get_config(current_acc, tmp_pool, &acc_cfg);
+	
+	on = on ? 1 : 0;
+	if (acc_cfg.vid_out_auto_transmit != on)
+	{
+		acc_cfg.vid_out_auto_transmit = on;
+		status = pjsua_acc_modify(current_acc, &acc_cfg);
+	}
+
+	pj_pool_release(tmp_pool);
+
+	if (status != PJ_SUCCESS)
+		return -1;
+	else
+		return 0;
+}
 
 /**
  * @brief 设置video默认捕获的设备号(TODO)
@@ -514,22 +599,89 @@ void mf_pjsip_vid_set_default_renderer_id(void);
 /**
  * @brief 设置当前视频会话的接收流(TODO)
 */
-void mf_pjsip_vid_set_rx_stream(void);
+int mf_pjsip_vid_set_rx_stream(int med_idx, int on)
+{
+	pj_status_t status = PJ_SUCCESS;
+	pjsua_call_vid_strm_op_param param;
+	
+	pjsua_call_vid_strm_op_param_default(&param);
+	pjsua_stream_info si;
+
+	on = on ? 1 : 0;
+	param.med_idx = med_idx;
+
+	if (pjsua_call_get_stream_info(current_call, param.med_idx, &si) 
+		|| si.type != PJMEDIA_TYPE_VIDEO)
+	{
+		return -1;
+	}
+	
+	if (on) param.dir = (si.info.vid.dir | PJMEDIA_DIR_DECODING);
+	else param.dir = (si.info.vid.dir & PJMEDIA_DIR_ENCODING);	
+
+	status = pjsua_call_set_vid_strm(current_call,
+										PJSUA_CALL_VID_STRM_CHANGE_DIR,
+										&param);
+	if (status != PJ_SUCCESS)
+		return -1;
+	else
+		return 0;
+}
 
 /**
  * @brief 设置当前视频会话的发送流(TODO)
 */
-void mf_pjsip_vid_set_tx_stream(void);
+int mf_pjsip_vid_set_tx_stream(int med_idx, int on)
+{
+	pj_status_t status = PJ_SUCCESS;
+	pjsua_call_vid_strm_op_param param;
+	
+	pjsua_call_vid_strm_op_param_default(&param);
+	pjsua_call_vid_strm_op op = on? PJSUA_CALL_VID_STRM_START_TRANSMIT :
+					PJSUA_CALL_VID_STRM_STOP_TRANSMIT;
+
+	param.med_idx = med_idx;
+	status = pjsua_call_set_vid_strm(current_call, op, &param);
+	if (status != PJ_SUCCESS)
+		return -1;
+	else
+		return 0;
+}
 
 /**
  * @brief 添加一个视频流到当前会话(TODO)
 */
-void mf_pjsip_vid_add_stream(void);
+int mf_pjsip_vid_add_stream(void)
+{
+	pj_status_t status = PJ_SUCCESS;
+	status = pjsua_call_set_vid_strm(current_call,
+									PJSUA_CALL_VID_STRM_ADD, NULL);
+	if (status == PJ_SUCCESS)
+		return 0;
+	else
+		return -1;
+}
 
 /**
  * @brief 设置当前会话流的捕获设备id(TODO)
 */
-void mf_pjsip_vid_set_stream_capture_id(void);
+int mf_pjsip_vid_enable_stream(int med_idx, int enable)
+{
+	pj_status_t status = PJ_SUCCESS;
+	pjsua_call_vid_strm_op_param param;
+	
+	pjsua_call_vid_strm_op_param_default(&param);
+	pjsua_call_vid_strm_op op = enable? PJSUA_CALL_VID_STRM_CHANGE_DIR :
+					PJSUA_CALL_VID_STRM_REMOVE;
+
+	param.med_idx = med_idx;
+	param.dir = PJMEDIA_DIR_ENCODING_DECODING;
+	status = pjsua_call_set_vid_strm(current_call, op, &param);
+	if (status == PJ_SUCCESS)
+		return 0;
+	else
+		return -1;	
+}
 
 /**
  * @brief 获取设备列表(TODO)

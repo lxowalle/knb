@@ -80,12 +80,57 @@ int main(int argc, char *argv[])
     _TEST(res, "list account info\n");
 #endif
 
-#if 0
+#if 1
+    while(!exit_flag);
+    exit_flag = 0;
+
+    res = mf_pjsip_enable_video(1);
+    _TEST(res, "mf_pjsip_enable_video\n");
+
+    /* 自动发送video */
+    res = mf_pjsip_vid_set_autotx(1);
+    _TEST(res, "mf_pjsip_vid_set_autotx\n");
+
+    /* 自动接受video */
+    res = mf_pjsip_vid_set_autorx(1);
+    _TEST(res, "mf_pjsip_vid_set_autorx\n");
+#endif
+
+#if 1
     while(!exit_flag);
     exit_flag = 0; 
     /* 拨打一个电话 */
     res = mf_pjsip_make_call("sip:101@192.168.0.115");
     _TEST(res, "mf_pjsip_make_call\n");
+#endif
+
+#if 1
+    while(!exit_flag);
+    exit_flag = 0;
+    /* 创建视频流 */
+    res = mf_pjsip_vid_add_stream();
+    _TEST(res, "mf_pjsip_vid_add_stream\n");
+#endif
+
+#if 1
+    while(!exit_flag);
+    exit_flag = 0;
+    res = mf_pjsip_vid_enable_stream(1, 1);
+    _TEST(res, "mf_pjsip_vid_enable_stream\n");
+#endif
+
+#if 1
+    while(!exit_flag);
+    exit_flag = 0;
+    res = mf_pjsip_vid_set_tx_stream(-1, 1);
+    _TEST(res, "mf_pjsip_vid_set_tx_stream\n");
+#endif
+
+#if 1
+    while(!exit_flag);
+    exit_flag = 0;
+    res = mf_pjsip_vid_set_rx_stream(-1, 1);
+    _TEST(res, "mf_pjsip_vid_set_rx_stream\n");
 #endif
 
 #if 0

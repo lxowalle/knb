@@ -286,7 +286,7 @@ void mf_pjsip_save_config(void);
 /**
  * @brief 开启video功能(TODO)
 */
-void mf_pjsip_enable_video(void);
+int mf_pjsip_enable_video(int enable);
 
 /**
  * @brief 显示当前video的会话配置(TODO)
@@ -296,12 +296,12 @@ void mf_pjsip_vid_show_cfg(void);
 /**
  * @brief 启动自动接收video数据(TODO)
 */
-void mf_pjsip_vid_set_autorx(void);
+int mf_pjsip_vid_set_autorx(int on);
 
 /**
  * @brief 启动自动发送video数据(TODO)
 */
-void mf_pjsip_vid_set_autotx(void);
+int mf_pjsip_vid_set_autotx(int on);
 
 /**
  * @brief 设置video默认捕获的设备号(TODO)
@@ -316,17 +316,17 @@ void mf_pjsip_vid_set_default_renderer_id(void);
 /**
  * @brief 设置当前视频会话的接收流(TODO)
 */
-void mf_pjsip_vid_set_rx_stream(void);
+int mf_pjsip_vid_set_rx_stream(int med_idx, int on);
 
 /**
  * @brief 设置当前视频会话的发送流(TODO)
 */
-void mf_pjsip_vid_set_tx_stream(void);
+int mf_pjsip_vid_set_tx_stream(int med_idx, int on);
 
 /**
  * @brief 添加一个视频流到当前会话(TODO)
 */
-void mf_pjsip_vid_add_stream(void);
+int mf_pjsip_vid_add_stream(void);
 
 /**
  * @brief 设置当前会话流的捕获设备id(TODO)
