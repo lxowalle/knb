@@ -12,6 +12,35 @@ do{                                                         \
         exit(a);                                            \
 }while(0)
 
+static void print_acc_status(int acc_id)
+{
+    char buf[80];
+    pjsua_acc_info info;
+
+    pjsua_acc_get_info(acc_id, &info);
+
+    if (!info.has_registration) {
+	pj_ansi_snprintf(buf, sizeof(buf), "%.*s",
+			 (int)info.status_text.slen,
+			 info.status_text.ptr);
+
+    } else {
+	pj_ansi_snprintf(buf, sizeof(buf),
+			 "%d/%.*s (expires=%d)",
+			 info.status,
+			 (int)info.status_text.slen,
+			 info.status_text.ptr,
+			 info.expires);
+
+    }
+
+    printf(" %c[%2d] %.*s: %s\n", (acc_id==current_acc?'*':' '),
+	   acc_id,  (int)info.acc_uri.slen, info.acc_uri.ptr, buf);
+    printf("       Online status: %.*s\n",
+	(int)info.online_status_text.slen,
+	info.online_status_text.ptr);
+}
+
 /************************************************************************************
  * 							MF API
 ************************************************************************************/
@@ -71,7 +100,7 @@ int mf_pjsip_deinit(void)
 }
 
 /**
- * @brief 发起一个电话(TODO)
+ * @brief 发起一个电话
 */
 int mf_pjsip_make_call(char *dst_url)
 {
@@ -95,7 +124,7 @@ int mf_pjsip_make_call(char *dst_url)
 	call_opt.aud_cnt = app_config.aud_cnt;
 	call_opt.vid_cnt = app_config.vid.vid_cnt;
 	
-	status = pjsua_call_make_call(current_acc, &call_dst, &call_opt, NULL, &msg_data_, &current_call);
+	status = pjsua_call_make_call(pjsua_acc_get_default(), &call_dst, &call_opt, NULL, &msg_data_, &current_call);
 	if (status != PJ_SUCCESS)
 	{
 		pjsua_perror(THIS_FILE, "Make call", status);
@@ -111,7 +140,53 @@ int mf_pjsip_make_call(char *dst_url)
 void mf_pjsip_make_multiple_calls(char *dst_url);
 
 /**
- * @brief 挂断电话(TODO)
+ * @brief 应答电话
+*/
+int mf_pjsip_answer_call(int st_code)
+{
+    pjsua_call_info call_info;
+    pjsua_msg_data msg_data_;
+
+    if (current_call != -1) {
+	pjsua_call_get_info(current_call, &call_info);
+    } else {
+	/* Make compiler happy */
+	call_info.role = PJSIP_ROLE_UAC;
+	call_info.state = PJSIP_INV_STATE_DISCONNECTED;
+    }
+
+    if (current_call == -1 ||
+	call_info.role != PJSIP_ROLE_UAS ||
+	call_info.state >= PJSIP_INV_STATE_CONNECTING)
+    {
+	return PJ_FALSE;
+
+    } else {
+
+	if (st_code < 100)
+	    return PJ_FALSE;
+
+	pjsua_msg_data_init(&msg_data_);
+
+	/*
+	* Must check again!
+	* Call may have been disconnected while we're waiting for
+	* keyboard input.
+	*/
+	if (current_call == -1) {
+	    puts("Call has been disconnected");
+	    fflush(stdout);
+	    return PJ_FALSE;
+	}
+
+	pjsua_call_answer2(current_call, &call_opt, st_code, NULL, &msg_data_);
+    }
+
+	return PJ_SUCCESS;
+}
+
+/**
+ * @brief 挂断电话
 */
 int mf_pjsip_hangup_call(int all)
 {
@@ -133,7 +208,7 @@ int mf_pjsip_hangup_call(int all)
 }
 
 /**
- * @brief 挂起电话(TODO)
+ * @brief 挂起电话
 */
 int mf_pjsip_hold_call(void)
 {
@@ -147,15 +222,17 @@ int mf_pjsip_hold_call(void)
 		else
 			return -1;
 	}
+
+	return 0;
 }
 
 /**
- * @brief 释放挂起的电话(TODO)
+ * @brief 释放挂起的电话
 */
 int mf_pjsip_reinvite_call(void)
 {
 	pj_status_t status = PJ_SUCCESS;
-
+	call_opt.flag |= PJSUA_CALL_UNHOLD;
 	status = pjsua_call_reinvite2(current_call, &call_opt, NULL);
 	if (status == PJ_SUCCESS)
 		return 0;
@@ -254,7 +331,7 @@ void mf_pjsip_connect_port(void);
 void mf_pjsip_disconnect_port(void);
 
 /**
- * @brief 调节声音音量(TODO)
+ * @brief 调节声音音量
 */
 int mf_pjsip_adjust_audio_volume(float mic_vol, float spk_vol)
 {
@@ -283,7 +360,7 @@ int mf_pjsip_adjust_audio_volume(float mic_vol, float spk_vol)
 void mf_pjsip_set_codec_priorities(void);
 
 /**
- * @brief 添加一个新账户(TODO)
+ * @brief 添加一个新账户
 */
 int mf_pjsip_add_new_account(mf_pjsip_acc_cfg_t * cfg)
 {
@@ -316,7 +393,7 @@ int mf_pjsip_add_new_account(mf_pjsip_acc_cfg_t * cfg)
 	return 0;
 }
 /**
- * @brief 删除账户(TODO)
+ * @brief 删除账户
 */
 int mf_pjsip_delete_account(pjsua_acc_id acc_id)
 {
@@ -327,11 +404,28 @@ int mf_pjsip_delete_account(pjsua_acc_id acc_id)
 	else 
 	{
 		status = pjsua_acc_del(acc_id);
-		if (status != PJ_SUCCESS) 
+		if (status == PJ_SUCCESS) 
 			return 0;
 		else
 			return -1;
     }
+}
+
+/**
+ * @brief 打印账户信息
+*/
+int mf_pjsip_print_account_info(void)
+{
+    pjsua_acc_id acc_ids[16];
+    unsigned count = PJ_ARRAY_SIZE(acc_ids);
+
+	pjsua_enum_accs(acc_ids, &count);
+
+	for (int i = 0; i < count; i ++)
+	{
+		print_acc_status(acc_ids[i]);
+	}
+	return 0;
 }
 
 /**
@@ -345,13 +439,12 @@ void mf_pjsip_modify_account();
 void mf_pjsip_re_register_account(void);
 
 /**
- * @brief 取消注册账户(TODO)
+ * @brief 取消注册当前账户(TODO)
 */
 int mf_pjsip_unregister(void)
 {
 	pj_status_t status;
-	status = pjsua_acc_set_registration(current_acc, PJ_TRUE);
-
+	status = pjsua_acc_set_registration(pjsua_acc_get_default(), PJ_TRUE);
 	if (status == PJ_SUCCESS)
 		return 0;
 	else

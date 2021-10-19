@@ -94,7 +94,7 @@ int mf_pjsip_init(void);
 int mf_pjsip_deinit(void);
 
 /**
- * @brief 发起一个电话(TODO)
+ * @brief 发起一个电话
 */
 int mf_pjsip_make_call(char *dst_url);
 
@@ -104,17 +104,22 @@ int mf_pjsip_make_call(char *dst_url);
 void mf_pjsip_make_multiple_calls(char *dst_url);
 
 /**
- * @brief 挂断电话(TODO)
+ * @brief 应答电话
+*/
+int mf_pjsip_answer_call(int st_code);
+
+/**
+ * @brief 挂断电话
 */
 int mf_pjsip_hangup_call(int all);
 
 /**
- * @brief 挂起电话(TODO)
+ * @brief 挂起电话
 */
 int mf_pjsip_hold_call(void);
 
 /**
- * @brief 释放挂起的电话(TODO)
+ * @brief 释放挂起的电话
 */
 int mf_pjsip_reinvite_call(void);
 
@@ -209,7 +214,7 @@ void mf_pjsip_connect_port(void);
 void mf_pjsip_disconnect_port(void);
 
 /**
- * @brief 调节声音音量(TODO)
+ * @brief 调节声音音量
 */
 int mf_pjsip_adjust_audio_volume(float mic_vol, float spk_vol);
 
@@ -219,14 +224,19 @@ int mf_pjsip_adjust_audio_volume(float mic_vol, float spk_vol);
 void mf_pjsip_set_codec_priorities(void);
 
 /**
- * @brief 添加一个新账户(TODO)
+ * @brief 添加一个新账户
 */
 int mf_pjsip_add_new_account(mf_pjsip_acc_cfg_t *cfg);
 
 /**
- * @brief 删除账户(TODO)
+ * @brief 删除账户
 */
 int mf_pjsip_delete_account(pjsua_acc_id acc_id);
+
+/**
+ * @brief 打印账户信息
+*/
+int mf_pjsip_print_account_info(void);
 
 /**
  * @brief 修改账户(TODO)
@@ -239,7 +249,7 @@ void mf_pjsip_modify_account(void);
 void mf_pjsip_re_register_account(void);
 
 /**
- * @brief 取消注册账户(TODO)
+ * @brief 取消注册当前账户(TODO)
 */
 int mf_pjsip_unregister(void);
 
