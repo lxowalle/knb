@@ -1,8 +1,0 @@
-menu "tests config"
-    config TESTS_ENABLE
-        bool "Enable tests component"
-        default y
-        help
-            Enable include static lib(from gcc)
-endmenu
-

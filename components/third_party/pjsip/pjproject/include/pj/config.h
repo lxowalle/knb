@@ -178,6 +178,7 @@
 #   define PJ_IS_LITTLE_ENDIAN	1
 #   define PJ_IS_BIG_ENDIAN	0
 
+
 #elif defined (PJ_M_X86_64) || defined(__amd64__) || defined(__amd64) || \
 	defined(__x86_64__) || defined(__x86_64) || \
 	defined(_M_X64) || defined(_M_AMD64)
@@ -254,8 +255,7 @@
 #   define PJ_IS_LITTLE_ENDIAN	0
 #   define PJ_IS_BIG_ENDIAN	1
 
-#elif defined(ARM) || defined(_ARM_) ||  defined(__arm__) || \
-       defined(_M_ARM) || defined(_M_ARM64)
+#elif defined(ARM) || defined(_ARM_) ||  defined(__arm__) || defined(_M_ARM)
 #   define PJ_HAS_PENTIUM	0
     /*
      * ARM, bi-endian, so raise error if endianness is not configured
@@ -271,10 +271,6 @@
 #	undef PJ_M_ARMV4
 #	define PJ_M_ARMV4		1
 #	define PJ_M_NAME		"armv4"
-#   elif defined (PJ_M_ARM64) || defined(ARM64)
-#	undef PJ_M_ARM64
-#	define PJ_M_ARM64		1
-#	define PJ_M_NAME		"arm64"
 #   endif 
 
 #elif defined (PJ_M_POWERPC) || defined(__powerpc) || defined(__powerpc__) || \
@@ -1402,13 +1398,13 @@ PJ_BEGIN_DECL
 #define PJ_VERSION_NUM_MINOR	11
 
 /** PJLIB version revision number. */
-#define PJ_VERSION_NUM_REV      0
+#define PJ_VERSION_NUM_REV      1
 
 /**
  * Extra suffix for the version (e.g. "-trunk"), or empty for
  * web release version.
  */
-#define PJ_VERSION_NUM_EXTRA	"-dev"
+#define PJ_VERSION_NUM_EXTRA	""
 
 /**
  * PJLIB version number consists of three bytes with the following format:

@@ -59,34 +59,32 @@ typedef enum pjmedia_echo_flag
 {
     /**
      * Use any available backend echo canceller algorithm. This is
-     * the default settings. You can only choose one backend.
+     * the default settings. This setting is mutually exclusive with
+     * PJMEDIA_ECHO_SIMPLE and PJMEDIA_ECHO_SPEEX.
      */
     PJMEDIA_ECHO_DEFAULT= 0,
 
     /**
      * Force to use Speex AEC as the backend echo canceller algorithm.
-     * You can only choose one backend.
+     * This setting is mutually exclusive with PJMEDIA_ECHO_SIMPLE and
+     * PJMEDIA_ECHO_WEBRTC.
      */
     PJMEDIA_ECHO_SPEEX	= 1,
 
     /**
      * If PJMEDIA_ECHO_SIMPLE flag is specified during echo canceller
      * creation, then a simple echo suppressor will be used instead of
-     * an accoustic echo cancellation. You can only choose one backend.
+     * an accoustic echo cancellation. This setting is mutually exclusive
+     * with PJMEDIA_ECHO_SPEEX and PJMEDIA_ECHO_WEBRTC.
      */
     PJMEDIA_ECHO_SIMPLE	= 2,
 
     /**
      * Force to use WebRTC AEC as the backend echo canceller algorithm.
-     * You can only choose one backend.
+     * This setting is mutually exclusive with PJMEDIA_ECHO_SIMPLE and
+     * PJMEDIA_ECHO_SPEEX.
      */
     PJMEDIA_ECHO_WEBRTC = 3,
-
-    /**
-     * Force to use WebRTC AEC3 as the backend echo canceller algorithm.
-     * You can only choose one backend.
-     */
-    PJMEDIA_ECHO_WEBRTC_AEC3 = 4,
 
     /**
      * For internal use.
@@ -118,12 +116,6 @@ typedef enum pjmedia_echo_flag
      * canceller will also apply noise suppressor method to reduce noise.
      */
     PJMEDIA_ECHO_USE_NOISE_SUPPRESSOR = 128,
-
-    /**
-     * If PJMEDIA_ECHO_USE_GAIN_CONTROLLER flag is specified, the echo
-     * canceller will also apply automatic gain control.
-     */
-    PJMEDIA_ECHO_USE_GAIN_CONTROLLER = 256,
     
     /**
      * Use default aggressiveness setting for the echo canceller algorithm. 
@@ -137,26 +129,26 @@ typedef enum pjmedia_echo_flag
      * algorithm. This setting is mutually exclusive with the other
      * aggressiveness settings.
      */
-    PJMEDIA_ECHO_AGGRESSIVENESS_CONSERVATIVE = 0x1000,
+    PJMEDIA_ECHO_AGGRESSIVENESS_CONSERVATIVE = 0x100,
     
     /**
      * Use moderate aggressiveness setting for the echo canceller algorithm. 
      * This setting is mutually exclusive with the other aggressiveness
      * settings.
      */
-    PJMEDIA_ECHO_AGGRESSIVENESS_MODERATE = 0x2000,
+    PJMEDIA_ECHO_AGGRESSIVENESS_MODERATE = 0x200,
     
     /**
      * Use aggressive aggressiveness setting for the echo canceller
      * algorithm. This setting is mutually exclusive with the other
      * aggressiveness settings.
      */
-    PJMEDIA_ECHO_AGGRESSIVENESS_AGGRESSIVE = 0x3000,
+    PJMEDIA_ECHO_AGGRESSIVENESS_AGGRESSIVE = 0x300,
     
     /**
      * For internal use.
      */
-    PJMEDIA_ECHO_AGGRESSIVENESS_MASK = 0xF000
+    PJMEDIA_ECHO_AGGRESSIVENESS_MASK = 0xF00
 
 } pjmedia_echo_flag;
 
@@ -176,22 +168,10 @@ typedef struct pjmedia_echo_stat
     const char *name;
 
     /**
-     * Echo delay value (in ms).
+     * Echo delay median value (in ms).
      * PJMEDIA_ECHO_STAT_NOT_SPECIFIED if unavailable.
      */
-    int 	delay;
-
-    /**
-     * Echo return loss.
-     * PJMEDIA_ECHO_STAT_NOT_SPECIFIED if unavailable.
-     */
-    double 	return_loss;
-
-    /**
-     * Echo return loss enhancement.
-     * PJMEDIA_ECHO_STAT_NOT_SPECIFIED if unavailable.
-     */
-    double 	return_loss_enh;
+    int 	median;
 
     /**
      * Echo delay standard deviation (in ms).

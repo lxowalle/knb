@@ -2,12 +2,22 @@ menuconfig THIRD_PARTY_ENABLE
     bool "Enable third party"
     default y
 
-    menuconfig PJSIP_ENABLE
-        bool "Enable pjsip"
-        default y
+    menuconfig FFMPEG_ENABLE
+        bool "Enable ffmpeg"
+        default n
         depends on THIRD_PARTY_ENABLE
 
-        config PJSIP_USER_DYNAMIC_LIB
-            bool "Compile pjsip with shared lib (default use static lib)"
+    menuconfig PJSIP_ENABLE
+        bool "Enable pjsip"
+        default n
+        depends on THIRD_PARTY_ENABLE
+
+        config PJSIP_USE_DYNAMIC_LIB
+            bool "Compile pjsip with shared lib (default use shared lib)"
             default y
+            depends on PJSIP_ENABLE
+
+        config PJSIP_VIDEO_ENABLE
+            bool "Enable pjsip video(depends ffmpeg)"
+            default n
             depends on PJSIP_ENABLE

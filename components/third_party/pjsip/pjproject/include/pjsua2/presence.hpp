@@ -250,13 +250,6 @@ public:
     bool isValid() const;
 
     /**
-     * Get PJSUA-LIB buddy ID or index associated with this buddy.
-     *
-     * @return			Integer greater than or equal to zero.
-     */
-    int getId() const;
-
-    /**
      * Get detailed buddy info.
      *
      * @return			Buddy info.

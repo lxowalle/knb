@@ -1,14 +1,11 @@
 ################# Add include #################
-# pjsip
-list(APPEND ADD_INCLUDE "pjsip/pjproject/include"
-                        "pjsip/inc")
 
-list(APPEND ADD_PRIVATE_INCLUDE "pjsip/inc_private")
+
 ###############################################
 
 ############## Add source files ###############
-# list(APPEND ADD_SRCS  "src")
-append_srcs_dir(ADD_SRCS "pjsip/src")
+
+
 # list(REMOVE_ITEM COMPONENT_SRCS "src/test.c")
 ###############################################
 
@@ -19,11 +16,16 @@ append_srcs_dir(ADD_SRCS "pjsip/src")
 ############ Add static libs ##################
 # list(APPEND ADD_STATIC_LIB "")
 ###############################################
-if(NOT CONFIG_PJSIP_USER_DYNAMIC_LIB)
 
-endif()
+
 ############ Add dynamic libs ##################
-if(CONFIG_PJSIP_USER_DYNAMIC_LIB)
+if(CONFIG_PJSIP_ENABLE)
+list(APPEND ADD_INCLUDE         "pjsip/pjproject/include"
+                                "pjsip/inc")
+list(APPEND ADD_PRIVATE_INCLUDE "pjsip/inc_private")
+append_srcs_dir(ADD_SRCS        "pjsip/src")
+
+if(CONFIG_PJSIP_USE_DYNAMIC_LIB)
 list(APPEND ADD_DYNAMIC_LIB "pjsip/pjproject/lib/libpj.so.2"
                             "pjsip/pjproject/lib/libpjlib-util.so.2"
                             "pjsip/pjproject/lib/libpjmedia-audiodev.so.2"
@@ -45,6 +47,7 @@ list(APPEND ADD_DYNAMIC_LIB "pjsip/pjproject/lib/libpj.so.2"
                             "pjsip/pjproject/lib/libsrtp.so.2"
                             # "pjsip/pjproject/lib/libyuv.so"
                             )
+endif()
 endif()
 ###############################################
 
