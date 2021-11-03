@@ -3,17 +3,32 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define DOOR_DB_TABLE_NAME   "qrcode_door"          // 数据库表名
+
+#define QRCODE_TAB_NAME_LEN     (20)
+#define QRCODE_TAB_TOKEN_LEN    (256)
+#define QRCODE_TAB_NOTE_LEN     (50)
+typedef struct
+{
+    uint32_t id;
+    char name[QRCODE_TAB_NAME_LEN];
+    uint32_t start_time;
+    uint32_t end_time;
+    char token[QRCODE_TAB_TOKEN_LEN];
+    char note[QRCODE_TAB_NOTE_LEN];
+}qrcode_table_member_t;
 
 typedef struct
 {
     mf_door_t base;
+    qrcode_table_member_t db_tbl;
 }mf_door_qrcode_t;
 
 static int create_db_table(void *database)
 {
-    struct sqlite3 *db = (struct sqlite3 *)database;  
+    sqlite3 *db = (sqlite3 *)database;  
     int res = -1;
     char *err_msg = NULL;
 
@@ -60,9 +75,9 @@ static int delete_db_table(void *database)
     return 0;
 }
 
-static int insert_db_table(void *database, void *param)
+static int insert_db_table_record(void *database, void *param)
 {
-    struct sqlite3 *db = (struct sqlite3 *)database;  
+    struct sqlite3 *db = (struct sqlite3 *)database;
     int res = -1;
     char *err_msg = NULL;
 
@@ -88,14 +103,104 @@ static int insert_db_table(void *database, void *param)
     return 0;
 }
 
-static int qrcode_door_init(mf_door_config_t *door_config)
+static int select_db_table_record(mf_door_t *door, void *param)
 {
-    mf_door_config_t *door_cfg = (mf_door_config_t *)door_config;
+    mf_door_qrcode_t *qd = (mf_door_qrcode_t *)door;
+    sqlite3 *db = (sqlite3 *)qd->base.db;
+    qrcode_table_member_t *member = &qd->db_tbl;
+    sqlite3_stmt *stmt = NULL;
+    int res = -1;
+    char *err_msg = NULL;
+    char sql[sizeof(qrcode_table_member_t) + 256] = {0};
+    char *key = "id";
+    int value = 2;
+    snprintf(sql, sizeof(sql), "SELECT * FROM " DOOR_DB_TABLE_NAME " WHERE %s = %d;", key, value);
+
+    res = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    if (res != SQLITE_OK)
+    {
+        fprintf(stderr, "DB prepare v2 failed!res = %d\n", res);
+        return -1;
+    }
+
+    // res |= sqlite3_bind_blob(stmt, 1, qd->db_tbl.id, sizeof(qd->db_tbl.id), SQLITE_STATIC);
+    // res |= sqlite3_bind_int(stmt, 2, qd->db_tbl.start_time);
+    // res |= sqlite3_bind_int(stmt, 3, qd->db_tbl.end_time);
+    // res |= sqlite3_bind_blob(stmt, 4, qd->db_tbl.token, sizeof(qd->db_tbl.token), SQLITE_STATIC);
+    // if (res != SQLITE_OK)
+    // {
+    //     fprintf(stderr, "DB bind failed!res = %d\n", res);
+    //     sqlite3_finalize(stmt);
+    //     return -1;
+    // }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        int col = 0;
+        int len = 0;
+        char *str = NULL;
+
+        member->id = sqlite3_column_int(stmt, col ++);
+
+        len = sqlite3_column_bytes(stmt, col);
+        str = sqlite3_column_blob(stmt, col);
+        memcpy(member->name, str, len);
+        col ++;
+
+        member->start_time = sqlite3_column_int(stmt, col ++);
+        member->end_time = sqlite3_column_int(stmt, col ++);
+
+        len = sqlite3_column_bytes(stmt, col);
+        str = sqlite3_column_blob(stmt, col);
+        memcpy(member->token, str, len);
+        col ++;
+
+        len = sqlite3_column_bytes(stmt, col);
+        str = sqlite3_column_blob(stmt, col);
+        memcpy(member->note, str, len);
+        col ++;
+    }
+
+    sqlite3_finalize(stmt);
+
+#if 1
+    printf("id:%d name:%s start_time:%d end_time:%d token:%s note:%s\n", 
+    member->id, member->name, member->start_time, member->end_time, member->token, member->note);
+#endif
+    return 0;
+}
+
+static int delete_db_table_record(void *database, void *param)
+{
+    struct sqlite3 *db = (struct sqlite3 *)database;  
+    int res = -1;
+    char *err_msg = NULL;
+    char sql[256] = {0};
+
+    uint32_t tbl_id = 3;
+
+    snprintf(sql, sizeof(sql), "DELETE FROM " DOOR_DB_TABLE_NAME " WHERE id = %d;", tbl_id);
+
+    res = sqlite3_exec(db, sql, NULL, 0, &err_msg);
+    if (res != SQLITE_OK)
+    {
+        fprintf(stderr, "DB error: %s %d\n", err_msg, res);
+        sqlite3_free(err_msg);
+        return -1;
+    }
+
+    printf("qrcode delete database table\n");
+
+    return 0;
+}
+
+static int qrcode_door_init(mf_door_t *door)
+{
+    mf_door_qrcode_t *dq = (mf_door_qrcode_t *)door;
     int res = -1;
     printf("qrcode door init\n");
-
-    /* Create database table */
-    res = create_db_table(door_cfg->db);
+ 
+    res = create_db_table(dq->base.db);
     if (res < 0)
     {
         printf("Create database table failed!res:%d\n", res);
@@ -105,9 +210,9 @@ static int qrcode_door_init(mf_door_config_t *door_config)
     return 0;
 }
 
-static int qrcode_door_deinit(mf_door_config_t *door_config)
+static int qrcode_door_deinit(mf_door_t *door)
 {
-    mf_door_config_t *door_cfg = (mf_door_config_t *)door_config;
+    mf_door_qrcode_t *dq = (mf_door_qrcode_t *)door;
     int res = -1;
     printf("qrcode door deinit\n");
 
@@ -142,25 +247,31 @@ static int qrcode_auto_adjust_door(int open, int ms)
     return 0;
 }
 
-static int qrcode_insert_password(mf_door_config_t *door_config, void *param)
+static int qrcode_insert_password(mf_door_t *door, void *param)
 {
-    mf_door_config_t *door_cfg = (mf_door_config_t *)door_config;
+    mf_door_qrcode_t *dq = (mf_door_qrcode_t *)door;
     printf("qrcode insert password\n");
 
-    insert_db_table(door_cfg->db);
+    insert_db_table_record(dq->base.db, NULL);
 
     return 0;
 }
 
-static int qrcode_select_password(void *param)
+static int qrcode_select_password(mf_door_t *door, void *param)
 {
+    mf_door_qrcode_t *dq = (mf_door_qrcode_t *)door;
     printf("qrcode select password\n");
+
+    select_db_table_record(dq, NULL);
     return 0;
 }
 
-static int qrcode_delete_password(void *param)
+static int qrcode_delete_password(mf_door_t *door, void *param)
 {
+    mf_door_qrcode_t *dq = (mf_door_qrcode_t *)door;
     printf("qrcode delete password\n");
+
+    delete_db_table_record(dq->base.db, NULL);
     return 0;
 }
 

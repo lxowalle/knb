@@ -9,9 +9,10 @@
 
 struct mf_door_op_t;
 struct mf_door_config_t;
+struct mf_door_t;
 typedef struct mf_door_config_t mf_door_config_t;
 typedef struct mf_door_op_t mf_door_op_t;
-
+typedef struct mf_door_t mf_door_t;
 typedef enum
 {
     MF_DOOR_NONE = 0,
@@ -24,26 +25,27 @@ typedef enum
 
 struct mf_door_op_t
 {
-    int (*init)(mf_door_config_t *door_config);
-    int (*deinit)(mf_door_config_t *door_config);
+    int (*init)(mf_door_t *door);
+    int (*deinit)(mf_door_t *door);
     int (*open)(void);
     int (*close)(void);
     int (*auto_adjust)(int open, int ms);
-    int (*insert_passwd)(mf_door_config_t *door_config, void *param);
-    int (*select_passwd)(void *param);
-    int (*delete_passwd)(void *param);
+    int (*insert_passwd)(mf_door_t *door, void *param);
+    int (*select_passwd)(mf_door_t *door, void *param);
+    int (*delete_passwd)(mf_door_t *door, void *param);
     int (*encoding)(void *in, void *out);
     int (*decoding)(void *in, void *out);
     int (*control)(void *param);
 };
 
-typedef struct
+struct mf_door_t
 {
     mf_door_type_t type;
     mf_door_op_t *op;
-    uint8_t valid;
+    sqlite3 *db;
+    uint8_t enable;
     uint8_t has_db_table;
-}mf_door_t;
+};
 
 typedef mf_door_t *(*mf_door_create_func_ptr_t)(void);
 
@@ -52,7 +54,7 @@ struct mf_door_config_t
     uint32_t init;
 
     char db_name[20];
-    struct sqlite3 *db;
+    sqlite3 *db;
 
     uint32_t door_cnt;
     mf_door_t   *door[32];
@@ -83,5 +85,7 @@ int mf_door_init(char *db_path);
 int mf_door_deinit(void);
 
 int mf_door_insert_passwd(mf_door_t *door, void *param);
+int mf_door_delete_passwd(mf_door_t *door, void *param);
+int mf_door_select_passwd(mf_door_t *door, void *param);
 
 #endif 

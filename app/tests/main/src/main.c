@@ -4,9 +4,25 @@
 #include "string.h"
 #include "mf_door.h"
 #include "sqlite3.h"
-
+#include "stdlib.h"
 
 static sqlite3 *db = NULL;
+typedef struct
+{
+    uint32_t id;
+    uint32_t start_time;
+    uint32_t end_time;
+    char token[256];
+    char note[50];
+}qrcode_table_member_t;
+
+static void parse(void *param)
+{
+    char *para = (char *)param;
+
+
+}
+
 int main()
 {
     // printf("main\n");
@@ -16,47 +32,29 @@ int main()
     db = door_cfg->db;
     // test();
 
+    char **param = {"id" , sizeof("id"),
+                    "123", sizeof("123"),
+
+                    "start_time", "1",
+                    "end_time"  , "1000",
+                    "token"     , "aabbccddeeffgg",
+                    "note"      , "this is xxxx"};
+
+    char *data = (char *)calloc(1, 256);
+
+
     mf_door_t *door = mf_door_get(MF_DOOR_QRCODE);
     if (door != NULL)
     {
-        mf_door_insert_passwd(door, NULL);
+        // mf_door_insert_passwd(door, NULL);
+
+        // mf_door_delete_passwd(door, NULL);
+
+        mf_door_select_passwd(door, NULL);
     }
 
     mf_door_deinit();
-#if 0
-    char *db_path = "mf_door_db.sqlite";
-    int ret = -1;
-    ret = sqlite3_open(db_path, &db);
-    if( ret ){
-        printf("Can't open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return -1;
-    }
 
-    char *err_msg = NULL;
-
-    // create table
-    char* sql = "CREATE TABLE IF NOT EXISTS face("
-"id INTEGER PRIMARY KEY AUTOINCREMENT,"
-"uid BLOB,"
-"auth INTEGER,"
-"name TEXT NOT NULL,"
-"job TEXT,"
-"note TEXT,"
-"ftr_passwd BLOB,"
-"ftr_face BLOB,"
-"ftr_finger BLOB,"
-"ftr_card BLOB,"
-"ftr_idcard BLOB"
-");";
-
-    ret = sqlite3_exec(db, sql, NULL, 0, &err_msg);
-    if( ret != SQLITE_OK ){
-        fprintf(stderr, "DB error: %s\n", err_msg);
-        sqlite3_free(err_msg);
-        return -1;
-    }
-#endif
     return 0;
 }
 

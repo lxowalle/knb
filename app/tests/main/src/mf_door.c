@@ -96,8 +96,8 @@ int mf_door_init(char *db_path)
         else
         {
             door_cfg->door[door_cfg->door_cnt ++] = door;
-            res = door->op->init(door_cfg);                         // 初始化
-            door->valid = res ? 0 : 1;
+            door->db = door_cfg->db;
+            door->op->init(door);                         // 初始化
         }
     }
 
@@ -123,7 +123,7 @@ int mf_door_deinit(void)
     for (int i = 0; i < door_cnt; i ++)
     {
         door = door_cfg->door[i];
-        door->op->deinit(door_cfg);
+        door->op->deinit(door);
         free(door);
         door = NULL;
     }
@@ -164,12 +164,10 @@ int mf_door_close(mf_door_t *door)
 */
 int mf_door_insert_passwd(mf_door_t *door, void *param)
 {
-    mf_door_config_t *door_cfg = mf_door_get_cfg();
-
     if (door == NULL && param == NULL)
         return -1;
 
-    return door->op->insert_passwd(door_cfg, param);
+    return door->op->insert_passwd(door, param);
 }
 
 /**
@@ -181,7 +179,7 @@ int mf_door_select_passwd(mf_door_t *door, void *param)
     if (door == NULL && param == NULL)
         return -1;
 
-    return door->op->select_passwd(param);    
+    return door->op->select_passwd(door, param);    
 }
 
 /**
@@ -193,5 +191,5 @@ int mf_door_delete_passwd(mf_door_t *door, void *param)
     if (door == NULL && param == NULL)
         return -1;
 
-    return door->op->delete_passwd(param);    
+    return door->op->delete_passwd(door, param);    
 }
