@@ -6,14 +6,21 @@ static mf_door_config_t mf_door_cfg = {0};
 
 #if MF_DOOR_QRCODE_ENABLE
 extern mf_door_t *door_qrcode_create(void);
-#endif /* MF_DOOR_QRCODE_ENABLE */
+#endif
+
+#if MF_DOOR_RFID_ENABLE
+extern mf_door_t *door_rfid_create(void);
+#endif
 
 /* Add more */
 static mf_door_create_func_ptr_t create_list[] = 
 {
 #if MF_DOOR_QRCODE_ENABLE
-    door_qrcode_create
-#endif /* MF_DOOR_QRCODE_ENABLE */
+    door_qrcode_create,
+#endif
+#if MF_DOOR_RFID_ENABLE
+    door_rfid_create
+#endif
 };
 
 /**
@@ -97,12 +104,34 @@ int mf_door_init(char *db_path)
         {
             door_cfg->door[door_cfg->door_cnt ++] = door;
             door->db = door_cfg->db;
-            door->op->init(door);                         // 初始化
+            if (door->op->init)
+                door->op->init(door);                         // 初始化
         }
     }
 
     door_cfg->door_cnt = door_cnt;
     door_cfg->init = 1;
+
+    return 0;
+}
+
+/**
+ * @brief 处理循环程序
+ * @return 
+*/
+int mf_door_loop(void)
+{
+    mf_door_config_t *door_cfg = mf_door_get_cfg();
+    mf_door_t *door;
+    uint32_t door_cnt;
+
+    door_cnt = sizeof(create_list) / sizeof(create_list[0]);
+    for (int i = 0; i < door_cnt; i ++)
+    {
+        door = door_cfg->door[i];
+        if (door->op->loop)
+            door->op->loop(door);
+    }
 
     return 0;
 }
@@ -167,7 +196,7 @@ int mf_door_insert_passwd(mf_door_t *door, void *param)
     if (door == NULL && param == NULL)
         return -1;
 
-    return door->op->insert_passwd(door, param);
+    return 0;
 }
 
 /**
@@ -179,7 +208,7 @@ int mf_door_select_passwd(mf_door_t *door, void *param)
     if (door == NULL && param == NULL)
         return -1;
 
-    return door->op->select_passwd(door, param);    
+    return 0;    
 }
 
 /**
@@ -191,5 +220,5 @@ int mf_door_delete_passwd(mf_door_t *door, void *param)
     if (door == NULL && param == NULL)
         return -1;
 
-    return door->op->delete_passwd(door, param);    
+    return 0;    
 }

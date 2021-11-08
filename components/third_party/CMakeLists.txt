@@ -5,6 +5,8 @@ list(APPEND ADD_INCLUDE         "sqlite3" "/usr/include")
 
 ############## Add source files ###############
 list(APPEND ADD_SRCS            "sqlite3/sqlite3.c")
+list(APPEND ADD_SRCS            "sqlite3/mf_sqlite.c")
+
 list(APPEND ADD_DYNAMIC_LIB "/usr/lib/x86_64-linux-gnu/libpthread.so"
                             "/usr/lib/x86_64-linux-gnu/libdl.so")
 # list(REMOVE_ITEM COMPONENT_SRCS "src/test.c")
